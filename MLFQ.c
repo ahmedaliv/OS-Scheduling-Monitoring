@@ -45,12 +45,6 @@ int main()
     // Run the MLFQ scheduling algorithm
     mlfq(processes, num_processes);
 
-    // Print the results for each process
-   /*  printf("Process\tArrival Time\tBurst Time\tTurnaround Time\tWaiting Time\n");
-    for (int i = 0; i < num_processes; i++)
-    {
-        printf("%d\t\t%d\t\t%d\t\t%d\t\t%d\n", processes[i].id, processes[i].arrival_time, processes[i].burst_time, processes[i].turnaround_time, processes[i].waiting_time);
-    } */
 
     return 0;
 }
@@ -84,7 +78,6 @@ int checkPriority(int t,int level ,bool current){
     int level = 0;
     int current_process = 0;
     int completed_processes = 0;
-    // int time_slice = 0;
 
     // Initialize all queues to be empty
     for (int i = 0; i < MAX_LEVELS; i++)
@@ -101,7 +94,7 @@ int checkPriority(int t,int level ,bool current){
     // Set the quantum for each queue
     queues[0].quantum = 2; // Set the quantum for the highest priority queue to 1
     queues[1].quantum = 4; // Set the quantum for the next priority queue to 4
-    queues[2].quantum = 6; // Set the quantum for the next priority queue to 8
+    queues[2].quantum = 6; // Set the quantum for the next priority queue to 6
     // Set the quantum for the remaining queues as desired
 
     // Add all processes to the high priority queue
@@ -114,9 +107,8 @@ int checkPriority(int t,int level ,bool current){
     // While there are still processes to complete
     while (completed_processes < num_processes)
     {
-        // Increment time
-        ///time++;
-                // printf("Queue %d Starts Executing...\n",level+1);
+       
+        // printf("Queue %d Starts Executing...\n",level+1);
         sleep(1);
         // If the current queue is not empty
         if (queues[level].num_processes > 0)
@@ -237,9 +229,7 @@ int checkPriority(int t,int level ,bool current){
                             queues[level].processes[i] = queues[level].processes[i + 1];
                         }
                         queues[level].num_processes--;
-                      //  current_process--;
                     }
-                    //current_process++;
 
                     // If the current process has exceeded the number of processes in the current queue
                     if (current_process == queues[level].num_processes)
@@ -317,69 +307,3 @@ int checkPriority(int t,int level ,bool current){
 }
 }
 
-  /* else // not completed then move it again to the end of the queue
-                {
-              
-                       queues[level].processes[current_process].time_slice++;
-                        time++;
-                        if( queues[level].processes[current_process].io_time){ // if the time hits the start of i/o of the process then deschedule it and put it back to the end of the queue
-                                //shift it to the end 
-                                process_t temp=queues[level].processes[current_process];
-                                for(int j=current_process; j<num_processes; j++){
-                                queues[level].processes[(j)%num_processes]=queues[level].processes[(j+1)%num_processes];
-                                }
-                                queues[level].processes[num_processes-1]=temp; // move it to the last element 
-                                // queues[level].processes[current_process].waiting_time++;
-                        
-            }
-                } */
-
- /*  for(int i=0; i<queues[level].quantum ;i++){ //increasing time slice one by one 
-                queues[level].processes[current_process].time_slice++;
-                time++;
-                int ioFlag=0;
-                if( queues[level].processes[current_process].io_time){ // if the time hits the start of i/o of the process then deschedule it and put it back to the end of the queue
-                        //shift it to the end 
-                        process_t temp=queues[level].processes[current_process];
-                        for(int j=current_process; j<num_processes; j++){
-                         queues[level].processes[(j)%num_processes]=queues[level].processes[(j+1)%num_processes];
-                        }
-                        queues[level].processes[num_processes-1]=temp; // move it to the last element 
-                        ioFlag=1;
-                        // queues[level].processes[current_process].waiting_time++;
-                }
-                if(ioFlag)break;
-            } */
-
-       /*      // If the current process has an I/O operation to complete
-            if (queues[level].processes[current_process].io_completion_time > 0)
-            {
-                // Decrement the I/O completion time
-                queues[level].processes[current_process].io_completion_time--;
-
-                // If the I/O operation has completed
-                if (queues[level].processes[current_process].io_completion_time == 0)
-                {
-                    // Reset the I/O time of the process
-                    queues[level].processes[current_process].io_time = 0;
-                }
-            } */
-            
-            
-        // If the current queue is empty, move to the next queue
-
-
-           /* // loop in queue 1 to check if there's a process that arrived at -time-
-                int flag=0;
-             //   queue_t cur_queue=queues[level];
-                for(int i=0; i<queues[level].num_processes;i++){
-                    if(queues[level].processes[i].arrival_time <=time){ // check for any process that arrived at this time
-                      current_process=i;   // if yes , get the index of it , if no go to the next priority level
-                            flag=1; // to indicate that there's a valid process in this queue
-                            break;
-                    }
-                } 
-                if(!flag){
-                    level++;
-                    continue;
-                } */
