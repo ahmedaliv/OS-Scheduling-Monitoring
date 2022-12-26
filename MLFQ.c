@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <unistd.h>
 #define MAX_PROCESSES 10
 #define MAX_LEVELS 3
 
@@ -94,8 +95,8 @@ int checkHigherPriority(int t,int level){
     }
 
     // Set the quantum for each queue
-    queues[0].quantum = 1; // Set the quantum for the highest priority queue to 1
-    queues[1].quantum = 3; // Set the quantum for the next priority queue to 4
+    queues[0].quantum = 2; // Set the quantum for the highest priority queue to 1
+    queues[1].quantum = 4; // Set the quantum for the next priority queue to 4
     queues[2].quantum = 6; // Set the quantum for the next priority queue to 8
     // Set the quantum for the remaining queues as desired
 
@@ -112,28 +113,13 @@ int checkHigherPriority(int t,int level){
         // Increment time
         ///time++;
                 // printf("Queue %d Starts Executing...\n",level+1);
-
+        sleep(1);
        
 
         // If the current queue is not empty
         if (queues[level].num_processes > 0)
         {
-             /* // loop in queue 1 to check if there's a process that arrived at -time-
-                int flag=0;
-             //   queue_t cur_queue=queues[level];
-                for(int i=0; i<queues[level].num_processes;i++){
-                    if(queues[level].processes[i].arrival_time <=time){ // check for any process that arrived at this time
-                      current_process=i;   // if yes , get the index of it , if no go to the next priority level
-                            flag=1; // to indicate that there's a valid process in this queue
-                            break;
-                    }
-                } 
-                if(!flag){
-                    level++;
-                    continue;
-                } */
-
-                current_process=checkHigherPriority(time,0);
+                current_process=checkHigherPriority(time,level);
                 if(current_process==-1){
                     level++;
                     continue;
@@ -152,14 +138,14 @@ int checkHigherPriority(int t,int level){
             {
                       if(level) // if we are not on higher priority
                       {
-                        for(int i=0; i<queues[level].quantum && checkHigherPriority(time,level); i++){
-                            queues[level].processes[current_process].burst_time-=1; // decrease the burst time by quantum                
-                             queues[level].processes[current_process].time_slice+=1;
+                        for(int i=0; i<queues[level].quantum && (checkHigherPriority(time,level)!=-1); i++){
+                            queues[level].processes[current_process].burst_time-=queues[level].quantum; // decrease the burst time by quantum                
+                             queues[level].processes[current_process].time_slice+=queues[level].quantum;
                              time+=1;
-                           printf("Process %d Executing....\n",queues[level].processes[current_process].id);
+                           printf("Process %d Executing \t\t\t Total Elapsed Time: %d\n",queues[level].processes[current_process].id,time);
 
                                        // If the current process has completed
-                            if (queues[level].processes[current_process].burst_time == 0)
+                            if (queues[level].processes[current_process].burst_time <= 0)
                                 {
                                     // Set the turnaround time and mark the process as completed
                                     queues[level].processes[current_process].turnaround_time = time-queues[level].processes[current_process].arrival_time;
@@ -173,14 +159,16 @@ int checkHigherPriority(int t,int level){
                                         queues[level].processes[i] = queues[level].processes[i + 1];
                                     }
                                     queues[level].num_processes--;
-                                    current_process--;
+                                    continue;
                                 }
                                 // If the time slice has been exceeded but not finished(so it's gonna be moved to the next queue)
                                 else if (queues[level].processes[current_process].time_slice == queues[level].quantum)
                                 {
                                     // Move the current process to the next queue
+                                    queues[level].processes[current_process].arrival_time=time;
+                                    queues[level].processes[current_process].time_slice=0;
                                     queues[level + 1 ].processes[queues[level + 1].num_processes++] = queues[level].processes[current_process];
-                                    printf("Process %d  Moved to Queue %d\n",queues[level].processes[current_process].id,level+2);
+                                    printf("Process %d  Moved to Queue %d \t\t\t Total Elapsed Time: %d\n",queues[level].processes[current_process].id,level+2,time);
                                     // Remove the process from the current queue
                                     for (int i = current_process; i < queues[level].num_processes - 1; i++)
                                     {
@@ -204,7 +192,7 @@ int checkHigherPriority(int t,int level){
                              queues[level].processes[current_process].burst_time-=1; // decrease the burst time by quantum                
                               queues[level].processes[current_process].time_slice+=1;                                   
                              time+=1;
-                             printf("Process %d Executing....\n",queues[level].processes[current_process].id);
+                             printf("Process %d Executing \t\t\t Total Time Elapsed: %d\n",queues[level].processes[current_process].id,time);
 
                                   // If the current process has completed
                     if (queues[level].processes[current_process].burst_time == 0)
@@ -224,11 +212,13 @@ int checkHigherPriority(int t,int level){
                         current_process--;
                     }
                     // If the time slice has been exceeded but not finished(so it's gonna be moved to the next queue)
-                    else if (queues[level].processes[current_process].time_slice == queues[level].quantum)
+                    else if (queues[level].processes[current_process].time_slice >= queues[level].quantum)
                     {
                         // Move the current process to the next queue
+                        queues[level].processes[current_process].arrival_time=time;
+                         queues[level].processes[current_process].time_slice=0;
                         queues[level + 1].processes[queues[level + 1].num_processes++] = queues[level].processes[current_process];
-                        printf("Process %d  Moved to Queue %d\n",queues[level].processes[current_process].id,level+2);
+                        printf("Process %d  Moved to Queue %d\t\t\t Total Time Elapsed: %d\n",queues[level].processes[current_process].id,level+2,time);
                         // Remove the process from the current queue
                         for (int i = current_process; i < queues[level].num_processes - 1; i++)
                         {
@@ -271,11 +261,11 @@ int checkHigherPriority(int t,int level){
                                             queues[level].processes[current_process].time_slice+=queues[level].quantum;
                                             // check if took the full allotment
                                                 // If the time slice has been exceeded but not finished(so it's gonna be moved to the next queue)
-                                            if (queues[level].processes[current_process].time_slice == queues[level].quantum)
+                                            if (queues[level].processes[current_process].time_slice >= queues[level].quantum)
                                             {
                                                 // Move the current process to the next queue
                                                 queues[level + 1].processes[queues[level + 1].num_processes++] = queues[level].processes[current_process];
-                                                printf("Process %d  Moved to Queue %d\n",queues[level].processes[current_process].id,level+2);
+                                                printf("Process %d  Moved to Queue %d \t\t\t Total Time Elapsed: %d\n",queues[level].processes[current_process].id,level+2,time);
                                                 // Remove the process from the current queue
                                                 for (int i = current_process; i < queues[level].num_processes - 1; i++)
                                                 {
@@ -284,14 +274,10 @@ int checkHigherPriority(int t,int level){
                                                 queues[level].num_processes--;
                                                 current_process--;
                                             }
-                
                       }
                     } 
-              
                }
-        
-        }
-            
+        }  
           
     else
     {
@@ -301,7 +287,9 @@ int checkHigherPriority(int t,int level){
         // If all levels have been completed, move back to the first level
         if (level == MAX_LEVELS)
         {
-            level = 0;
+            printf("Done Execution of %d Processes",MAX_PROCESSES);
+            break;
+
         }
     }
 
@@ -359,3 +347,19 @@ int checkHigherPriority(int t,int level){
             
             
         // If the current queue is empty, move to the next queue
+
+
+           /* // loop in queue 1 to check if there's a process that arrived at -time-
+                int flag=0;
+             //   queue_t cur_queue=queues[level];
+                for(int i=0; i<queues[level].num_processes;i++){
+                    if(queues[level].processes[i].arrival_time <=time){ // check for any process that arrived at this time
+                      current_process=i;   // if yes , get the index of it , if no go to the next priority level
+                            flag=1; // to indicate that there's a valid process in this queue
+                            break;
+                    }
+                } 
+                if(!flag){
+                    level++;
+                    continue;
+                } */
